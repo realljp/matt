@@ -1,0 +1,8 @@
+sofya.mutator.operators.AFC
+sofya.mutator.operators.AOC
+sofya.mutator.operators.AOP
+sofya.mutator.operators.HFA
+sofya.mutator.operators.HFR
+sofya.mutator.operators.IOD
+sofya.mutator.operators.LCC
+sofya.mutator.operators.ROP

@@ -1,0 +1,82 @@
+Generate fault matrix
+
+TOOL DESCRIPTION:
+
+1. combine_fault_data.c	
+	transforms raw data created by scripts which contains differences 
+	between faulty versions into the fault matrix format
+
+2. extract_fault_file.awk	
+	awk script which extracts nth faults and fault file names from 
+	FaultSeeds.h file
+
+3. extract_from_script.awk		
+	awk script which extracts a single test run from the javamts generated 
+	run-and-diff script
+
+4. gen_newVer.c			
+	generates newVer file with all ones
+
+5. gen_temp_file.c			
+	generates temp file or temp directory in /tmp
+
+6. get_data_for_fault_matrix.sh	
+	low level script which creates fault matrix for a given program
+
+7. get_data_for_fault_matrix_version.sh	
+	low level script which creates fault matrix for a given program for 
+	a given version and a given fault
+
+8. get_data_for_fault_matrix_version_adj.sh	
+	low level script which creates fault matrix for a given program for 
+	a given version and a given fault.  
+	same as get_data_for_fault_matrix_version.sh except <line_adjust> 
+	option (see README for more details)
+
+9. make_fault_matrix.sh		   	
+	high level script which creates fault matrix for a given program
+
+10. make_fault_matrix_with_names.sh  
+	high level script which creates fault matrix for a given program
+	and same as make_fault_matrix.sh except extra parameters
+	(see INSTRUCTION section below and README file for more details) 
+
+11. get_fault_matrix_stats.c	
+	print statistics about fault matrix
+
+12. make_newVer_vers.sh		
+	low level script which generates newVer files for a given program 
+	for all versions
+
+13. make_newVer.sh			
+	high level script which generates newVer files for a given program 
+	and a given version
+
+14. process_diffs.awk		
+	awk script which processes output of run-and-diff script into part 
+	of intermediate format used by combine_fault_data javamts copy of 
+	binary program which creates run-all and run-and-diff scripts 
+	(can be external to those tools)
+
+
+INSTRUCTIONS:
+
+1) type "make build"
+
+2) compile EqualizeLineNumbers.java if its bytecode doesn't work.
+   You need to set CLASSPATH to BCEL directory before compiling.
+
+3) run "make_fault_matrix.sh <subject> <installation script> 
+	<number of versions> <universe path> <executable file> 
+	[<line_adjust>]" for all needed programs
+   or
+   run "make_fault_matrix_with_names.sh <program subject> 
+	<installation script> <version start> <number of versions> 
+	<universe path> <test universe file> <executable file> 
+	<fault matrix file> [<line_adjust>]" for all needed programs
+
+4) run "make_newVer.sh <prog> <number of versions>" for all needed programs
+
+5) run "get_fault_matrix_stats <fault matrix>" to get fault matrix statistics
+
+NOTE: Read README file for more details.

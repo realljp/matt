@@ -1,0 +1,32 @@
+NOTES:
+1) if warning appears about function overlapping, 
+   it can show more functions changed that actually are.  
+   In this case, look manually on all functions which were reported changed.  
+2) If warning about search space which is too large appears, rerun adiff tool 
+   with parameter "-vs=<k>" where <k> should be selected bigger than default value.  
+   If the reported search space is too large to be handled in reasonable time, 
+   results can be incorrect, study those files manually.  
+
+
+
+adiff.c			main program for functional "diff" tool.  
+
+adiff_diff.c		diffing subroutines
+
+adiff_matching.c	matching subroutines
+
+adiff_parse.c		parsing subroutines
+
+adiff_pragmas.c		pragma handling subroutines
+
+adiff_storage.c		data types manipulation subroutines
+
+adiff_tokens.c		tokens handling subroutines
+
+adiff_dir.sh		shell script to run "diff" tool
+
+adiff.sh		obsolete
+
+adiff_dir.sh		obsolete
+
+adiff_slow.sh		obsolete

@@ -1,0 +1,183 @@
+<html>
+<head>
+<title>Sofya User Manual: Java Mutator Toolkit</title>
+<style type="text/css">
+P.i1 { margin-left:2em }
+P.i2 { margin-left:4em }
+</style>
+</head>
+<body>
+
+<h2 style="text-align:center">Toolkit for Generating Java Mutation Faults</h2>
+<a name="mutmain"></a>
+
+<h3>Overview</h3>
+
+<p>The mutation toolkit is used to generate mutation faults for Java classes.
+Mutations are generated from the bytecode of Java classes and applied using
+bytecode transformations. The mutation operators used to generate and apply
+possible mutants are implemented in a dynamic framework that allows easy addition
+of new operators. The two main classes of interest are the
+<code>MutationGenerator</code>, which generates tables of possible mutations,
+and the <code>Mutator</code>, which applies mutations.</p>
+
+<h3>Running the Mutation Generator</h3>
+<a name="mgen"></a>
+
+<p>The mutation generator processes a set of Java classfiles using a set of
+enabled mutation operators and generates for each class a table of all the
+possible mutations that can be applied to that class. This table lists each
+mutation with the operator that generated it and the information necessary to
+apply the bytecode transformation. The command to run the mutation generator
+is the following:</p>
+
+<p><code>java sofya.mutator.MutationGenerator [-tag <i>tag</i>]
+&lt;-c <i>config_file</i>&gt; &lt;classfile|jarfile|listfile&gt;
+[classfile|jarfile|listfile ...]</code></p>
+<p class="i1"><code>-tag <i>tag</i></code></p>
+<p class="i2">Specifies the database tag associated with the
+provided program list file, if applicable. Ignored otherwise.</p>
+<p class="i1"><code>-c <i>config_file</i></code></p>
+<p class="i2">Specifies the configuration file to be used.</p>
+
+<p>If you include the &apos;.class&apos; extension when specifying a single class, it is interpreted
+as an absolute path name. If the extension is excluded, the class must be specified using its
+fully qualified name, and &#931&#959&#966&#943&#945 will attempt to load it from the classpath.
+The mutation generator also accepts jar files and program list files to specify the classes
+for which to generate mutations. Program list files are automatically found
+in the database, using the tag if one is specified. Any necessary path information
+should be provided when passing a jar file as an argument. When a jar file is passed
+as an argument on the command line, mutations are generated for every class in
+that jar. The preferred way to include classes in a jar file is to include the jar file
+in a program list file and supply the program list file as an argument instead, as a
+program list file permits you to exclude classes in the jar from processing. Any number
+of specific classes, jar files, and program list files can be passed to the mutation generator,
+though supplying a single program list file is the expected typical use.</p>
+
+<p>For each class, a file containing the mutation table for that class will be
+generated in the working directory from which the mutation generator was run.</p>
+
+<h4>Format of the Mutation Generator Configuration File</h4>
+<a name="mgenconf"></a>
+
+<p>The configuration file specifies the enabled mutation operators, and certain global
+properties used for loading mutation operators. This file should begin with the keyword
+&apos;global&apos; followed by zero or more property/value entries enclosed in braces;
+this section declares the global properties. Currently the following global properties
+are supported:</p>
+<!-- Currently operators are loaded from the classpath
+<p style="margin-left:2em"><code>operatorDirectory=&lt;<i>op_dir</i>&gt;</code></p>
+<p style="margin-left:4em">Specifies the path to the default directory to search
+for operator implementations.</p>-->
+<p class="i1"><code>operatorListFile=&lt;<i>list_file</i>&gt;</code></p>
+<p class="i2">Specifies the path to the file containing the list of
+operators to be enabled by default if <code>defaultEnabled</code> is set
+to <code>true</code>.</p>
+<p class="i1"><code>defaultEnabled=&lt;true|false&gt;</code></p>
+<p class="i2">Specifies whether all operators in the operators list
+file should be enabled by default. If <code>false</code>, no operator will be
+enabled unless it is explicitly listed in the configuration file. Defaults
+to <code>true</code>.</p>
+
+<p>If <code>defaultEnabled</code> is <code>false</code>, the remainder of the file
+should list the fully qualified name of the class implementing each operator to
+be enabled, followed by a brace-enclosed block. (The braces are present to
+support future extensions to the configuration file format).</p>
+
+<h5>Example Mutation Generator Configuration File</h5>
+<a name="mgenconfex"></a>
+
+<p>The following is a simple example of a configuration file for the mutation
+generator. It specifies that no mutation operators should be enabled by default,
+and then enables the argument order change (AOC) and logical connector change
+(LCC) operators explicitly.</p>
+
+<pre style="margin-left:2em">
+global {
+  defaultEnabled=false
+}
+sofya.mutator.operators.AOC {
+}
+sofya.mutator.operators.LCC {
+}
+</pre>
+
+<h3>Running the Mutator</h3>
+<a name="mutapp"></a>
+
+<p>The mutator is the tool responsible for actually applying one or more mutations
+to the bytecode of a Java classfile to create the mutated class. It uses the
+mutation tables produced by the mutation generator in combination with a user
+specified selection criteria to apply mutations to a class. To use the mutator,
+run the following command:</p>
+
+<p><code>java sofya.mutator.Mutator [-tag <i>tag</i>] [<i>selection_type</i>]
+&lt;classfile&gt; [in <i>directory</i>|<i>jarfile</i>]</code></p>
+
+<p>where optional <i>selection_type</i> may be one of the following:</p>
+<p class="i1"><code>-all</code></p>
+<p class="i2">Selects all mutations. This is the default.</p>
+<p class="i1"><code>-ids <i>id_1[:varid]</i>,<i>id_2[:varid]</i>,...,<i>id_n[:varid]</i></code></p>
+<p class="i2">Selects mutations by ID and optional variant ID.</p>
+<p class="i1"><code>-methods <i>method_list_file</i></code></p>
+<p class="i2">Selects mutations that occur in methods specified by method
+name and signature. The methods to be selected are listed in <i>method_list_file</i>,
+one per line, where each method entry is in source code declaration format with
+underscores substituted for spaces, and the fully qualified implementing class name is
+prepended (e.g. <code>java.util.Map_public_boolean_containsKey(Object_key)</code>).</p>
+<p class="i1"><code>-ops <i>op_1</i>,<i>op_2</i>,...,<i>op_n</i></code></p>
+<p class="i2">Selects mutations by operator.</p>
+<p class="i1"><code>-random <i>number</i></code></p>
+<p class="i2">Selects <i>number</i> mutations randomly.</p>
+<p class="i1"><code>-randOp <i>number</i> <i>op_1</i>,<i>op_2</i>,...,<i>op_n</i></code></p>
+<p class="i2">Selects <i>number</i> mutation operators from the given
+set of operators, and then selects all mutations generated by the selected operators.</p>
+<p class="i1"><code>-randMethod <i>number</i> <i>method_list_file</i></code></p>
+<p class="i2">Selects <i>number</i> methods from the list of methods
+in <i>method_list_file</i>, and then selects all mutations that occur in those methods.</p>
+
+<p>When specifying a class for mutation, the rules regarding inclusion of the
+<em>.class</em> extension are the same as for the Mutation Generator.
+However, the mutator exhibits additional behaviors with respect to
+the format of the class name. If an absolute path is given, the mutation(s)
+will be directly applied to the given classfile, at the classfile's current location.
+If the class is loaded from the classpath, the resulting mutated classfile will
+be placed in the working directory from which the mutator is run.</p>
+
+<p>The class to be mutated can also be qualified with the
+&quot;<code>in <i>directory</i>|<i>jarfile</i></code>&quot; clause. If this
+extension is present, the class name should be the fully qualified name of the
+class using dot notation (no path or extension). The mutator will then attempt
+to load and mutate the class in the given location. This is primarily intended
+to facilitate the mutation of classes in jar files.</p>
+
+<p>Regardless of how classes are specified to the mutator, the mutation tables for
+each class are loaded automatically from the current working directory. Generally it
+is expected that the mutator will be run from the same working directory as the
+mutation generator.</p>
+
+<h4>Variants</h4>
+
+<p>Certain mutation operators can generate multiple 'variants' at a particular
+mutation point. These variants represent a set of mutually exclusive modifications
+that can be made to produce a mutation at that location. An example of such
+a mutation operator is arithmetic operator substitution, where a single operator
+can be mutated into several alternate operators. When such cases arise,
+the mutation generator identifies and records all the possible alternatives in
+the mutation table as variants of a single mutation, one of which can be chosen
+at the time of mutation generation. A default variant is selected, usually
+at random. Variants are assigned numeric identifiers, which can be determined
+by using the <code>MutationTableViewer</code>. The two display modes of the
+viewer can provide either human-friendly or parser-friendly representations of
+the possible variants for selection. To select a variant, the appropriate
+numeric identifier can be appended to the mutation ID with a colon, using the
+"<code>-ids</code>" selector. For example:</p>
+<p class="i1"><code>java sofya.mutator.Mutator -ids 3:2 Target.class</code></p>
+<p>The above will select the second variant of the third mutation to be
+applied to <code>Target.class</code>. In the absence of a specified variant,
+the default variant will be used; the default variant can also be determined
+using the viewer.</p>
+
+<p>&nbsp;</p>
+</body>
+</html>

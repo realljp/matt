@@ -1,0 +1,9 @@
+Result was failure: junit.framework.ComparisonFailure: expected:<11111100> but was:<00111111>
+	at BinStringTest.testBinariseFunction(BinStringTest.java:28)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at junit.framework.SelectionTestResult.run(SelectionTestResult.java:197)
+	at junit.textui.SelectiveTestRunner.doRun(SelectiveTestRunner.java:285)
+	at junit.textui.SelectiveTestRunner.start(SelectiveTestRunner.java:515)
+	at junit.textui.SelectiveTestRunner.main(SelectiveTestRunner.java:341)

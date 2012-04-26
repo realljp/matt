@@ -1,0 +1,11 @@
+1:group:2:BinString:sum:(Ljava/lang/String;)I
+2:1:ROP:BinString:sum:(Ljava/lang/String;)I:3:0:if_acmpne[!=]:if_acmpeq[==]:
+3:1:ROP:BinString:sum:(Ljava/lang/String;)I:13:1:if_icmpne[!=]:if_icmplt[<]:1,==;2,<;3,>=;4,>;5,<=
+4:group:2:BinString:binarise:(I)Ljava/lang/String;
+5:4:ROP:BinString:binarise:(I)Ljava/lang/String;:1:0:ifne[!=]:iflt[<]:1,==;2,<;3,>=;4,>;5,<=
+6:4:ROP:BinString:binarise:(I)Ljava/lang/String;:11:1:if_icmpne[!=]:if_icmple[<=]:1,==;2,<;3,>=;4,>;5,<=
+7:-:AOP:BinString:sum:(Ljava/lang/String;)I:36:0:iadd[+]:isub[-]:1,-;2,*;3,/;4,%
+8:group:3:BinString:binarise:(I)Ljava/lang/String;
+9:8:AOP:BinString:binarise:(I)Ljava/lang/String;:9:0:irem[%]:iadd[+]:1,+;2,-;3,*;4,/
+10:8:AOP:BinString:binarise:(I)Ljava/lang/String;:29:1:idiv[/]:iadd[+]:1,+;2,-;3,*;4,%
+11:8:AOP:BinString:binarise:(I)Ljava/lang/String;:55:2:idiv[/]:isub[-]:1,+;2,-;3,*;4,%

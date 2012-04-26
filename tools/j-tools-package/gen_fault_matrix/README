@@ -1,0 +1,215 @@
+This document describes mandatory procedures that you should be done for
+your java subject in order to use fault-matrix tools.
+
+NOTE: 
+	- Skip step 1 if you have the following executables: 
+	  	combine_fault_data, gen_temp_file, and get_fault_matrix_stats
+
+	- To use gen_fault_matrix tools, you should have the same directory
+	  structure as specified for a subject, described in the subject
+	  handbook on the subjects web page.
+	  That is, we assume your subject directory has at least 
+	  the following directories:
+	  (each xxx.alt contains v0, v1, ..., vn, depending on your subject) 
+	        info	 	source       	testplans.alt
+          	inputs   	outputs      	versions.alt
+                outputs.alt   	scripts        	testplans 
+
+	  Otherwise, you have to modify gen_fault_matrix tools to adjust
+	  them for your environment. 
+
+
+1. Compile the tools by typing
+	make build
+
+2. Set environment variable experiment_root to point to the parent directory of 
+   the subject directory by typing "setenv experiment_root <path>"
+   For example, assume you have a subject directory "nanoxml" and you locate
+   it under /cs_machine/exp_group/experiments, then you would give the command:
+
+	setenv experiment_root /cs_machine/exp_group/experiments
+
+3. Make sure that the program javamts is in the current path.  
+
+4. Set the variable "universe_multiple" in make_fault_matrix_with_names.sh 
+   (make_fault_matrix.sh) to access the correct universe file.
+   Depending on your subject, you may have a single universe file across 
+   all versions or different universe files for different versions.
+   
+   4.1) Single universe file 
+	  If you have a single universe file, say "universe.tsl", which 
+	  applies to all versions, then you should locate it in the 
+	  directory "testplans.alt" and set "universe_multiple=0" 
+	  in make_fault_matrix_with_names.sh (make_fault_matrix.sh). 
+		(example)
+		testplans.alt/universe.tsl
+
+   4.2) Multiple universe files 
+	  If you have multiple universe files for different versions, 
+	  then you should locate them in the corresponding directory 
+	  "testplans.alt/vk", where 'k' corresponds to the version number
+	  and set "universe_multiple=1" in make_fault_matrix_with_names.sh 
+	  (make_fault_matrix.sh). 
+	  Since a universe file could be inherited by the following versions,
+	  testplans.alt's subdirectories may have the same universe file.
+	  For example,
+		Assume testplans.alt has v0, v1, v2, v3 and universe file 
+		"v0.tsl.universe" in v0 is inherited by all the consecutive
+		versions. Then all directories contain v0.tsl.universe and
+		may have a new universe file if they have new features to be 
+		tested and in turn this new universe could be inherited by
+		the next versions, too. 
+		v0 - v0.tsl.universe
+		v1 - v0.tsl.universe, v1.tsl.universe
+		v2 - v0.tsl.universe, v1.tsl.universe
+		v3 - v0.tsl.universe, v1.tsl.universe, v3.tsl.universe 
+
+		Then, you may give "v0.tsl.universe", "v1.tsl.universe", or
+		"v3.tsl.universe" as universe file name when you run 
+		make_fault_matrix_with_names.sh by specifying
+		corresponding version number. 
+		 
+	   
+	  NOTE: The subject "nanoxml" has multiple universe files, which 
+		vary by name for each version.
+		But if you are only interested in the number of tests 
+		revealing faults, then make universe file name in each 
+		directory the same by copying it into "universe.tsl".  
+		(example)
+		testplans.alt/v0/universe.tsl
+			      v1/universe.tsl
+				:
+			      vn/universe.tsl
+
+   By default, we set "universe_multiple=0" in make_fault_matrix.sh and
+   make_fault_matrix_with_names.sh.
+
+ 
+5. Create ${experiment_root}/<program subject>/versions.alt/seeded 
+   directory and its subdirectories v1, v2, v3, ..., vn, each containing 
+   seeded faults. 
+   If you want to seed a fault in A.java, then copy A.java into A.cpp
+   and keep A.java unmodified.
+   To place a fault in A.cpp, modify A.cpp in the following format: 
+
+      #include "FaultSeeds.h"
+            :
+            :
+      #ifdef F_A_HD_1
+          modified lines
+      #else
+          original lines
+      #endif
+            :
+            :
+      
+   Also, you must have a FaultSeeds.h file for each version and follow the 
+   fault-id naming rule described in the subject handbook.  
+   Assume A.cpp has fault-id, F_A_HD_1 and F_A_AK_1, in order, and B.cpp has
+   F_B_HD_1, F_B_HD_2, and F_B_AK_1 in order. 
+   That is, F_A_HD_1 appears earlier than F_A_AK_1 in file A.cpp. 
+ 
+      FaultSeeds.h contains all faults that reside in a subject version in 
+      the following format:
+          <fault_id> <fault_order_in_file> <fault_file_name> 
+          <fault_id> <fault_order_in_file> <fault_file_name> 
+          <fault_id> <fault_order_in_file> <fault_file_name> 
+		:
+	Using the example, FaultSeeds.h should be:
+	  F_A_HD_1 1 A.cpp
+	  F_A_AK_1 2 A.cpp
+	  F_B_HD_1 1 B.cpp
+	  F_B_HD_2 2 B.cpp
+	  F_B_AK_1 3 B.cpp
+	
+   There are NO empty lines, each line corresponds to exactly one fault.
+
+   After creating the seeded directories, you should have an installation 
+   script, which places a copy of the desired version into the source directory
+   and compiles it. 
+   This file should be in the ${experiment_root}/<program subject>/script 
+   directory.
+
+6. Run the tool by typing 
+	NOTE: fault-gen--matrix script assumes each vk in versions.alt has 
+	      Makefile to build its target version. If your subject uses
+	      other type of installation method, then you have to modify
+	      relevant lines (make) in "get_data_for_fault_matrix_version.sh".  
+
+   make_fault_matrix_with_names.sh <program subject> <installation script>
+                 <version start> <number of versions> <universe path>
+		 <test universe file> <executable file> <fault matrix file> 
+		 [<line_adjust>]
+
+   or
+
+   make_fault_matrix.sh <program subject> <installation script>
+                        <number of versions> <universe path> 
+			<executable file> [<line_adjust>]
+
+   where [<line_adjust>] is optional.
+   If you don't need to use this option, then don't give any value.
+   But if you need to use it, then you should give "1" for it.
+
+   ** WHEN  AND WHY YOU NEED <LINE_ADJUST> OPTION **
+	When you seed faults in a java source file and preprocess it (cpp) 
+	in order to run that faulty version, it may cause differences in 
+	total number of lines or shift lines between the original and faulty 
+	versions. Most of the time this doesn't cause any problems, but if 
+	test cases are involved which may print exception stack traces, we 
+	may see different results when comparing outputs between the original 
+	version and faulty version, even though their results should be 
+	identical.     
+	To prevent this problem, by invoking this option in the script 
+	we equalize line numbers between the original and faulty versions.  
+ 	To use this option, your <installation script> should be modified 
+	to handle equalization of line numbers. That is, the initial .cpp 
+	files containing all fault-id (no faults are turned on yet)
+	also need to be line adjusted.    	 
+	An example ./Example/install_line_adjust.sh shows how to use 
+	equalize line number tool. (tool name: EqualizeLineNumbers)
+    
+
+   <universe path> is the directory path which contains universe file. 
+  	This path is relative to ${experiment_root}/${subject_dir}.
+	If testplans.alt has subdirectories "v0...vn" or has no subdirectory, 
+	then "testplans.alt" should be given for this variable.
+	If testplans.alt has subdirectories "component" and "application" as 
+	in nanoxml, then you should give "testplans.alt/component" or 
+	"testplans.alt/application" for this variable depending on which 
+	universe file you are using.
+	4.1, 4.2, and 4.3 also deals with related issue.
+	
+   <executable file> is the main program to be run and is an input for javamts.
+   	If you run testdrivers instead of the main program, then you should 
+	give NULL for this parameter.
+   	Please refer to the javamts program description for details.
+
+
+EXAMPLES:
+   EX1) SIENA
+	make_fault_matrix_with_names.sh siena install_seeded.sh 1 7 
+	testplans.alt universe.tsl NULL fault-matrix.tsl 1
+
+        (set universe_multiple=0 in make_fault_matrix.sh or
+    	 make_fault_matrix_with_names.sh)
+
+   EX2) NANOXML
+	make_fault_matrix_with_names.sh nanoxml install_seeded.sh 1 5 
+	testplans.alt/component universe.tsl NULL fault-matrix.tsl 1	
+
+        (set universe_multiple=1 in make_fault_matrix.sh or
+    	 make_fault_matrix_with_names.sh)
+
+
+7. The tool will create fault matrices named "fault-matrix.tsl" if you run 
+    make_fault_matrix.sh(or with a user-defined name if you run 
+    make_fault_matrix_with_names.sh) and place them into directories v1, v2, 
+    ..., vn which are subdirectories of 
+    ${experiment_root}/<program subject>/info.  
+
+8. Run the analysis tool for a particular fault matrix by typing
+	get_fault_matrix_stats <fault matrix>
+    where <fault matrix> should be given with path name.
+    It will print out which tests reveal which fault and, for each fault, 
+    the percentage of tests which reveal it.  

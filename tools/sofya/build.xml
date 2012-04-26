@@ -1,0 +1,179 @@
+<project name="sofya" default="build" basedir=".">
+    <description>
+        Sofya system for analysis and testing of Java software
+    </description>
+
+    <property name="src" value="src/sofya"/>
+    <property name="topsrc" value="src"/>
+    <property name="build" value="build"/>
+    <property name="lib" value="lib"/>
+    <property name="doc" value="doc"/>
+    <property name="apidoc" value="${doc}/api"/>
+    <property name="jardir" value="_jar"/>
+
+    <property name="collections_ver" value="3.1"/>
+
+    <property environment="env"/>
+
+    <target name="initProps">
+        <condition property="javacc_home"
+                   value="${env.JAVACC_HOME}"
+                   else="${env.HOME}/javacc-4.0">
+            <isset property="env.JAVACC_HOME"/>
+        </condition>
+    </target>
+
+    <target name="init" depends="initProps">
+        <tstamp/>
+        <mkdir dir="${build}"/>
+
+        <condition property="javacc_home"
+                   value="${env.JAVACC_HOME}"
+                   else="${env.HOME}/javacc-4.0">
+            <isset property="env.JAVACC_HOME"/>
+        </condition>
+    </target>
+
+
+    <target name="compile" depends="init"
+            description="Compile all source">
+        <echo message="Building EDL parser..."/>
+        <!-- Ensure a clean build (JavaCC doesn't regenerate certain
+             files if they are already present, a behavior we don't
+             need in this case). -->
+        <delete failonerror="false">
+            <fileset dir="${src}/ed/semantic">
+                <include name="EDLParser.java"/>
+                <include name="EDLParserConstants.java"/>
+                <include name="EDLParserTokenManager.java"/>
+                <include name="JavaCharStream.java"/>
+                <include name="ParseException.java"/>
+                <include name="Token.java"/>
+                <include name="TokenMgrError.java"/>
+            </fileset>
+        </delete>
+        <javacc target="${src}/ed/semantic/edl.jj"
+                javacchome="${javacc_home}"
+                static="false"
+        />
+        <javac srcdir="${src}/../org" destdir="${build}" includes="**/*.java" />
+        <javac srcdir="${src}"
+               destdir="${build}"
+               includes="**/*.java"
+               debug="true"/>
+        <move todir="${build}/sofya">
+            <fileset dir="${build}">
+                <include name="ReflectiveSofya*"/>
+            </fileset>
+        </move>
+        <copy file="${src}/mutator/operators/operators.txt"
+              tofile="${build}/sofya/mutator/operators/operators.txt"/>
+    </target>
+
+
+    <target name="build" depends="compile, build-docs"
+            description="Build Sofya">
+    </target>
+
+
+    <target name="jar-bin" depends="compile"
+            description="Build binary-only jar ">
+        <copy todir="${jardir}">
+            <fileset dir="${build}"/>
+        </copy>
+        <copy file="${basedir}/LICENSE"
+              tofile="${jardir}/LICENSE"/>
+
+        <jar jarfile="sofya-bin-${DSTAMP}.jar"
+             basedir="${jardir}"/>
+
+        <delete dir="${jardir}" includeemptydirs="true"/>
+    </target>
+
+
+    <target name="jar" depends="build"
+            description="Build jar">
+        <copy todir="${jardir}">
+            <fileset dir="${build}"/>
+            <fileset dir="${src}"/>
+        </copy>
+
+        <copy todir="${jardir}/${doc}">
+            <fileset dir="${doc}">
+                <include name="index.html"/>
+                <include name="api/**"/>
+                <include name="manual/**"/>
+            </fileset>
+        </copy>
+
+        <copy file="${basedir}/LICENSE"
+              tofile="${jardir}/LICENSE"/>
+        <copy file="${basedir}/${lib}/LICENSE_GPLv2"
+              tofile="${jardir}/${lib}/LICENSE_GPLv2"/>
+
+        <jar jarfile="sofya-${DSTAMP}.jar"
+             basedir="${jardir}"/>
+
+        <delete dir="${jardir}" includeemptydirs="true"/>
+    </target>
+
+
+    <target name="clean"
+            description="Clean up">
+      <delete failonerror="false" includeemptydirs="true">
+          <fileset dir="${build}"/>
+          <fileset dir="${jardir}"/>
+      </delete>
+    </target>
+
+
+    <target name="build-docs" depends="-private::source-doc-prepare"
+            description="Build Sofya JavaDocs">
+        <javadoc destdir="${apidoc}"
+                 author="true"
+                 version="true"
+                 windowtitle="Sofya API Documentation">
+
+            <packageset dir="${topsrc}" defaultexcludes="yes">
+                <include name="sofya/apps/**"/>
+                <include name="sofya/base/**"/>
+                <include name="sofya/graphs/**"/>
+                <include name="sofya/ed/**"/>
+                <include name="sofya/tools/**"/>
+                <include name="sofya/mutator/**"/>
+                <include name="sofya/viewers/**"/>
+            </packageset>
+        </javadoc>
+
+        <jjdoc target="${src}/ed/semantic/edl.jj"
+               javacchome="${javacc_home}"
+               outputfile="${doc}/manual/user/edl_bnf_table.html"
+               onetable="true">
+        </jjdoc>
+        <jjdoc target="${src}/ed/semantic/edl.jj"
+               javacchome="${javacc_home}"
+               outputfile="${doc}/manual/user/edl_bnf_detail.html"
+               onetable="false">
+        </jjdoc>
+
+        <antcall target="-private::source-doc-restore"/>
+    </target>
+
+
+    <target name="-private::source-doc-prepare" depends="initProps">
+      <move file="${src}/ReflectiveSofya.java"
+            tofile="${src}/ReflectiveSofya.old"/>
+      <echo file="${src}/ReflectiveSofya.java" append="false">
+        package sofya;
+      </echo>
+      <concat destfile="${src}/ReflectiveSofya.java" append="true">
+        <filelist dir="${src}" files="ReflectiveSofya.old"/>
+      </concat>
+    </target>
+
+
+    <target name="-private::source-doc-restore">
+      <move file="${src}/ReflectiveSofya.old"
+            tofile="${src}/ReflectiveSofya.java"/>
+    </target>
+</project>

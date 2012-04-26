@@ -1,0 +1,28 @@
+TOOLS
+
+To compile and run do the following:
+
+1. Use "setenv" command to set "experiment_root" variable which needs to point 
+   where "subjects" directory lies (subjects directory contains subdirectories 
+   which hold subject programs)
+
+2. Type "make build-all" to build all the tools (gen_fault_matrix, misc_lib,
+   adiff) in this directory.
+    
+3. To use fault-matix tools, see CONTENTS and README in gen_fault_matrix 
+   directory. 
+
+
+The j-tools-package directory contains the following files and subdirectories:
+
+Makefile		Makefiles
+Makefile.inc
+
+adiff			functional diff tool
+
+misc_lib		library
+
+gen_fault_matrix	generation of fault matrices
+
+lib			compiled libraries from adiff, misc_lib, and 
+			gen_fault_matrix

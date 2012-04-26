@@ -1,0 +1,14 @@
+    Iterator ill=MethodCallinfor.iterator();
+    while(ill.hasNext()){
+    	String name=(String)ill.next();
+    	Edge[] a=uncovered.get(name);
+    	for(int i=0;i<a.length;i++){
+    		EdgeInfor edge=new EdgeInfor();
+    		edge.classname=name.substring(0, name.indexOf(':'));
+    		edge.methodname=name;
+    		edge.prenode=a[i].getPredNodeID();
+    		edge.sucnode=a[i].getSuccNodeID();
+    		OrderedGoalset.add(edge);
+    	}
+    	
+    }
